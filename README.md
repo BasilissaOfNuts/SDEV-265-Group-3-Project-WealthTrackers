@@ -7,3 +7,4 @@ Made by Stella Song
 
 ## Requirements
 1. Windows 10/11
+2. Python 3 latest release
