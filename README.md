@@ -1,2 +1,9 @@
 # SDEV 265 Project - Group 3
-Evan Petty, Isabelle Peterson, Stella Song
+Stella Song
+
+## Setup and Installation
+1. Head over to the release section of this repository
+2. Download the latest release and run the executable
+
+## Requirements
+1. Windows 10/11
