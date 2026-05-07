@@ -1,5 +1,5 @@
-# SDEV 265 Project - Group 3
-Stella Song
+# SDEV 265 - Group 3
+Made by Stella Song
 
 ## Setup and Installation
 1. Head over to the release section of this repository
