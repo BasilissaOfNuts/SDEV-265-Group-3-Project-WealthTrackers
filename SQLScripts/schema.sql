@@ -95,3 +95,10 @@ INSERT INTO categories (category_name) VALUES
 ('Travel'),
 ('Cash Withdrawals'),
 ('Check Deposits');
+
+-- Initial Hardcoded Vendors
+INSERT INTO vendors (vendor_name) VALUES
+('ATM DEPOSIT'),
+('ELECTRONIC DEPOSIT'),
+('ATM WITHDRAWAL'),
+('ELECTRONIC WITHDRAWAL');
