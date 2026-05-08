@@ -69,7 +69,6 @@ def test_aggregation_with_credit_card_debt(mock_repos):
     results = processor.get_aggregated_data(user_id)
 
     # If there are no transactions, the history might be empty or just the current state
-    # depending on how your specific repo handles empty sets.
     # If transactions exist, we check the baseline.
     if results:
         latest_key = max(results.keys())
@@ -96,7 +95,7 @@ def test_search_filtering_in_aggregation(mock_repos):
     results = processor.get_aggregated_data(user_id, search_text="Steam", group_by="Vendor")
 
     # Expense should ONLY show the filtered $50
-    assert results["2026-05-03"]["Expense"] == 50.0
+    assert results["2026-05-03"]["Expense"] == 50.0 
     # Total Balance should still reflect the actual bank status ($1000)
     assert results["2026-05-03"]["Total Balance"] == 1000.0
 
