@@ -131,4 +131,16 @@ CAPITAL_ONE_STYLE = """
         border: none;
         border-bottom: 2px solid #004879;
     }
+    
+    /* Fix for small square action buttons (+, -, ...) */
+    QPushButton#actionButton, QPushButton#redButton {
+        padding: 0px; 
+        min-width: 30px;
+        min-height: 30px;
+    }
+
+    /* Ensure the Save button still looks like a real button */
+    QPushButton#saveButton {
+        padding: 12px 24px;
+    }
 """

@@ -19,6 +19,7 @@ class AddTransaction(QDialog):
         self.account_id = account_id
         self.new_txn = None
         self.selected_category_id = None
+        self.selected_category_name = ""
         self.selected_vendor_id = None
         self.selected_vendor_name = ""
 
@@ -26,7 +27,7 @@ class AddTransaction(QDialog):
         self.all_vendors = []
 
         self.setWindowTitle("Record Transaction")
-        self.setFixedSize(450, 800)
+        self.setFixedSize(500, 850)
         self.setup_ui()
         self.load_initial_data()
 
@@ -55,38 +56,46 @@ class AddTransaction(QDialog):
         self.type_dropdown.addItems(["EXPENSE", "INCOME", "TRANSFER_OUT", "TRANSFER_IN"])
         layout.addWidget(self.type_dropdown)
 
-        # Vendor Selection
+        # Vendor
         layout.addWidget(QLabel("Search Vendor:"))
-        vendor_row = QHBoxLayout()
+        v_h = QHBoxLayout()
         self.vendor_search = QLineEdit(placeholderText="Type to find vendor...")
         self.vendor_search.textChanged.connect(self.filter_vendors)
-        vendor_row.addWidget(self.vendor_search)
+        v_h.addWidget(self.vendor_search)
 
         self.add_vendor_btn = QPushButton("+", objectName="actionButton")
         self.add_vendor_btn.clicked.connect(self.open_add_vendor)
-        vendor_row.addWidget(self.add_vendor_btn)
+        v_h.addWidget(self.add_vendor_btn)
 
         self.edit_vendor_btn = QPushButton("...", objectName="actionButton")
         self.edit_vendor_btn.clicked.connect(self.open_edit_vendor)
-        vendor_row.addWidget(self.edit_vendor_btn)
-        layout.addLayout(vendor_row)
+        v_h.addWidget(self.edit_vendor_btn)
+
+        self.del_vendor_btn = QPushButton("-", objectName="redButton")
+        self.del_vendor_btn.clicked.connect(self.delete_vendor)
+        v_h.addWidget(self.del_vendor_btn)
+        layout.addLayout(v_h)
 
         self.vendor_list = QListWidget()
         self.vendor_list.setFixedHeight(120)
         self.vendor_list.itemClicked.connect(self.handle_vendor_selection)
         layout.addWidget(self.vendor_list)
 
-        # Category Selection
-        layout.addWidget(QLabel("Search Category (or enter new and add with +):"))
-        cat_search_row = QHBoxLayout()
+        # Category
+        layout.addWidget(QLabel("Search Category:"))
+        c_h = QHBoxLayout()
         self.cat_search = QLineEdit(placeholderText="Type to find category...")
         self.cat_search.textChanged.connect(self.filter_categories)
-        cat_search_row.addWidget(self.cat_search)
+        c_h.addWidget(self.cat_search)
 
         self.add_cat_btn = QPushButton("+", objectName="actionButton")
         self.add_cat_btn.clicked.connect(self.handle_add_new_category)
-        cat_search_row.addWidget(self.add_cat_btn)
-        layout.addLayout(cat_search_row)
+        c_h.addWidget(self.add_cat_btn)
+
+        self.del_cat_btn = QPushButton("-", objectName="redButton")
+        self.del_cat_btn.clicked.connect(self.delete_category)
+        c_h.addWidget(self.del_cat_btn)
+        layout.addLayout(c_h)
 
         self.cat_list = QListWidget()
         self.cat_list.setFixedHeight(120)
@@ -98,7 +107,8 @@ class AddTransaction(QDialog):
         layout.addWidget(self.status_label)
         self.update_status()
 
-        save_btn = QPushButton("Save Transaction", objectName="redButton")
+        # Save Button
+        save_btn = QPushButton("Save Transaction", objectName="saveButton")
         save_btn.clicked.connect(self.handle_save)
         layout.addWidget(save_btn)
 
@@ -167,6 +177,53 @@ class AddTransaction(QDialog):
         except sqlite3.IntegrityError:
             QMessageBox.warning(self, "Error", "Category already exists.")
 
+    def delete_category(self):
+        if not self.selected_category_id:
+            QMessageBox.warning(self, "Selection Required", "Please select a category from the list to delete.")
+            return
+
+        reply = QMessageBox.question(self, "Confirm Delete",
+                                     "Are you sure you want to delete this category?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+
+        if reply == QMessageBox.StandardButton.No:
+            return
+
+        db_path = "WealthTrackersDB.sqlite"
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+
+            # CHECK 1: Is it used in any transactions?
+            cursor.execute("SELECT 1 FROM transactions WHERE category_id = ? LIMIT 1", (self.selected_category_id,))
+            if cursor.fetchone():
+                QMessageBox.warning(self, "Cannot Delete",
+                                    "This category is tied to existing transactions. Deletion blocked.")
+                conn.close()
+                return
+
+            # CHECK 2: Is it used as a default_category_id by any vendor?
+            cursor.execute("SELECT 1 FROM vendors WHERE default_category_id = ? LIMIT 1", (self.selected_category_id,))
+            if cursor.fetchone():
+                QMessageBox.warning(self, "Cannot Delete",
+                                    "This category is set as a default for an existing vendor. Deletion blocked.")
+                conn.close()
+                return
+
+            # Proceed with deletion
+            cursor.execute("DELETE FROM categories WHERE category_id = ?", (self.selected_category_id,))
+            conn.commit()
+            conn.close()
+
+            self.selected_category_id = None
+            self.selected_category_name = ""
+            self.cat_search.setText("")
+            self.load_initial_data()  # Refresh the lists
+            QMessageBox.information(self, "Success", "Category deleted successfully.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "DB Error", f"Failed to delete category: {e}")
+
     def update_status(self):
         v_name = self.selected_vendor_name if self.selected_vendor_name else "None"
         c_name = "None"
@@ -189,6 +246,46 @@ class AddTransaction(QDialog):
             return
         if EditVendor(self.selected_vendor_id, self).exec():
             self.load_initial_data()
+
+    def delete_vendor(self):
+        if not self.selected_vendor_id:
+            QMessageBox.warning(self, "Selection Required", "Please select a vendor from the list to delete.")
+            return
+
+        reply = QMessageBox.question(self, "Confirm Delete",
+                                     "Are you sure you want to delete this vendor?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+
+        if reply == QMessageBox.StandardButton.No:
+            return
+
+        db_path = "WealthTrackersDB.sqlite"
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+
+            # CHECK 1: Is it used in any transactions?
+            cursor.execute("SELECT 1 FROM transactions WHERE vendor_id = ? LIMIT 1", (self.selected_vendor_id,))
+            if cursor.fetchone():
+                QMessageBox.warning(self, "Cannot Delete",
+                                    "This vendor is tied to existing transactions. Deletion blocked.")
+                conn.close()
+                return
+
+            # Proceed with deletion
+            cursor.execute("DELETE FROM vendors WHERE vendor_id = ?", (self.selected_vendor_id,))
+            conn.commit()
+            conn.close()
+
+            self.selected_vendor_id = None
+            self.selected_vendor_name = ""
+            self.vendor_search.setText("")
+            self.cat_search.setText("")
+            self.load_initial_data()  # Refresh the lists
+            QMessageBox.information(self, "Success", "Vendor deleted successfully.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "DB Error", f"Failed to delete vendor: {e}")
 
     def handle_save(self):
         try:
