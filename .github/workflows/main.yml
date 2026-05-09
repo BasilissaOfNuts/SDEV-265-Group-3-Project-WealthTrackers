@@ -31,7 +31,7 @@ jobs:
 
     - name: Initialize SQLite Database
       run: |
-        sqlite3 WealthTrackersDB.sqlite < SQLScripts\schema.sql
+        sqlite3 WealthTrackersDB.sqlite < schema.sql
         sqlite3 WealthTrackersDB.sqlite ".tables"
       shell: cmd
 
