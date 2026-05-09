@@ -31,7 +31,7 @@ jobs:
 
     - name: Initialize SQLite Database
       run: |
-        sqlite3 WealthTrackersDB.sqlite < SQLScripts\schema.sql
+        sqlite3 WealthTrackersDB.sqlite < schema.sql
         sqlite3 WealthTrackersDB.sqlite ".tables"
       shell: cmd
 
@@ -49,8 +49,7 @@ jobs:
         pyinstaller --noconsole ^
         --onefile ^
         --name WealthTrackers ^
-        --icon="icon.webp" ^
-        --add-data "SQLScripts;SQLScripts" ^
+        --add-data "schema.sql;." ^
         --add-data "icon.webp;." ^
         main.py
 
