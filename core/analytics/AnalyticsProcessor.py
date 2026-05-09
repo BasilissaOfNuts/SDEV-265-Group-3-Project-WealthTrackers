@@ -5,7 +5,18 @@ from typing import Dict, List, Optional, Set
 
 from core.account.AccountRepository import AccountRepository
 from core.account.CreditCardAccount import CreditCardAccount
+from core.account.DebitCardAccount import DebitCardAccount
 from core.transaction.TransactionRepository import TransactionRepository
+
+def _get_period_key(date, p_type):
+    if p_type == "Daily": return date.strftime("%Y-%m-%d")
+    if p_type == "Monthly": return date.strftime("%Y-%m")
+    return date.strftime("%Y")
+
+def _key_to_datetime(key, p_type):
+    if p_type == "Daily": return datetime.strptime(key, "%Y-%m-%d")
+    if p_type == "Monthly": return datetime.strptime(key, "%Y-%m")
+    return datetime.strptime(key, "%Y")
 
 class AnalyticsProcessor:
     def __init__(self, txn_repo: TransactionRepository, acc_repo: AccountRepository):
@@ -41,6 +52,8 @@ class AnalyticsProcessor:
         for acc in target_accounts:
             if isinstance(acc, CreditCardAccount):
                 current_total_balance -= acc.balance
+            elif isinstance(acc, DebitCardAccount):
+                continue
             else:
                 current_total_balance += acc.balance
 
@@ -53,7 +66,7 @@ class AnalyticsProcessor:
 
         # We bucket data by date string first
         for tx in all_txns:
-            key = self._get_period_key(tx.date, period_type)
+            key = _get_period_key(tx.date, period_type)
             if key not in history:
                 history[key] = {"Income": Decimal("0.00"), "Expense": Decimal("0.00"), "Balance": Decimal("0.00")}
 
@@ -86,7 +99,7 @@ class AnalyticsProcessor:
         sorted_keys = sorted(history.keys())
 
         for k in sorted_keys:
-            dt = self._key_to_datetime(k, period_type)
+            dt = _key_to_datetime(k, period_type)
             if start_date and dt < start_date: continue
             if end_date and dt > end_date: continue
 
@@ -97,13 +110,3 @@ class AnalyticsProcessor:
             }
 
         return final_results
-
-    def _get_period_key(self, date, p_type):
-        if p_type == "Daily": return date.strftime("%Y-%m-%d")
-        if p_type == "Monthly": return date.strftime("%Y-%m")
-        return date.strftime("%Y")
-
-    def _key_to_datetime(self, key, p_type):
-        if p_type == "Daily": return datetime.strptime(key, "%Y-%m-%d")
-        if p_type == "Monthly": return datetime.strptime(key, "%Y-%m")
-        return datetime.strptime(key, "%Y")
