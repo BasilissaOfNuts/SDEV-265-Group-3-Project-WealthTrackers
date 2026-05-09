@@ -49,8 +49,7 @@ jobs:
         pyinstaller --noconsole ^
         --onefile ^
         --name WealthTrackers ^
-        --icon="icon.webp" ^
-        --add-data "SQLScripts;SQLScripts" ^
+        --add-data "schema.sql;." ^
         --add-data "icon.webp;." ^
         main.py
 
