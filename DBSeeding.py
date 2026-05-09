@@ -130,7 +130,7 @@ def seed():
         vm = vendor_map["IVY TECH PAYROLL"]
         txn_repo.save_transaction(Transaction(
             uuid.uuid4(), uuid.UUID(checking_id), vm["id"], "IVY TECH PAYROLL",
-            vm["cat_id"], vm["cat_name"], Decimal("3500.00"), datetime.now() - timedelta(days=5), 'INCOME'
+            vm["cat_id"], vm["cat_name"], Decimal("10000.00"), datetime.now() - timedelta(days=5), 'INCOME'
         ))
 
         # Transaction 3: Poke Bowl Delivery

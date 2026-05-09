@@ -16,7 +16,8 @@ CREATE TABLE categories (
 
 CREATE TABLE vendors (
     vendor_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vendor_name TEXT UNIQUE NOT NULL
+    vendor_name TEXT UNIQUE NOT NULL,
+    default_category_id INTEGER
 );
 
 -- Base Account Table

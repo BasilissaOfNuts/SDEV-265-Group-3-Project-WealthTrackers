@@ -131,12 +131,12 @@ class AccountRepository:
                                (str(account.id), account._enc_cvv, str(account.linked_checking_id)))
 
             # Seed initial balance transaction
-            if account.balance > 0 and acc_type != 'CRED IT':
+            if account.balance > 0 and (acc_type != 'CREDIT' and acc_type != 'DEBIT'):
                 cursor.execute("""
                     INSERT INTO transactions (transaction_id, account_id, vendor_id, category_id, amount, transaction_date, transaction_type)
                     VALUES (?, ?, 2, 3, ?, datetime('now'), 'INCOME')
                 """, (str(uuid.uuid4()), str(account.id), float(account.balance)))
-            else:
+            elif account.balance > 0 and acc_type == 'CREDIT':
                 cursor.execute("""
                     INSERT INTO transactions (transaction_id, account_id, vendor_id, category_id, amount, transaction_date, transaction_type)
                     VALUES (?, ?, 4, 4, ?, datetime('now'), 'EXPENSE')
