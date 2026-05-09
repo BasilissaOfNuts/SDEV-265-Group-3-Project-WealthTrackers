@@ -94,7 +94,7 @@ INSERT INTO categories (category_name) VALUES
 ('Bills & Utilities'),
 ('Food & Dining'),
 ('Travel'),
-('Cash Withdrawals'),
+('Cash Withdrawals');
 
 -- Initial Hardcoded Vendors
 INSERT INTO vendors (vendor_name) VALUES

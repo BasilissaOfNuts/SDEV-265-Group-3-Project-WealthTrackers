@@ -21,7 +21,7 @@ def resource_path(relative_path):
 def initialize_database():
     """Checks for the SQLite DB and creates it using the schema script if missing."""
     db_path = "WealthTrackersDB.sqlite"
-    schema_path = resource_path("schema.sql")
+    schema_path = resource_path(os.path.join("schema.sql"))
 
     if not os.path.exists(db_path):
         print(f"Database {db_path} not found. Initializing from {schema_path}...")
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     if not initialize_database():
         app = QApplication(sys.argv)
         QMessageBox.critical(None, "Initialization Error",
-                             "Could not initialize the database. Ensure SQLScripts/schema.sql exists.")
+                             "Could not initialize the database. Ensure schema.sql exists.")
         sys.exit(1)
 
     app = QApplication(sys.argv)
